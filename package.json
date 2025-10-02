@@ -10,7 +10,7 @@
   "directus:extension": {
     "type": "interface",
     "path": "dist/index.js",
-    "source": "src/index.js",
+    "source": "src/index.ts",
     "host": "^11.0.0"
   },
   "scripts": {
@@ -19,6 +19,8 @@
   },
   "devDependencies": {
     "@directus/extensions-sdk": "11.0.0",
+    "@directus/types": "^11.2.1",
+    "typescript": "^5.9.3",
     "vue": "^3.5.22"
   }
 }
