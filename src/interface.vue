@@ -19,8 +19,8 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, inject, Ref } from 'vue';
-import { useStores } from '@directus/extensions-sdk';
+import {ref, computed, inject, Ref} from 'vue';
+import {useStores} from '@directus/extensions-sdk';
 
 // 1. Define Props with TypeScript Interface/Type
 interface Props {
@@ -49,7 +49,7 @@ const emit = defineEmits<{
 // We are using 'any' as a placeholder for unknown types.
 const api = inject('api') as any;
 const values = inject('values') as Ref<any>; // 'values' is typically a reactive object
-const { useNotificationsStore } = useStores();
+const {useNotificationsStore} = useStores();
 const notificationsStore = useNotificationsStore();
 
 // 4. Reactive State with explicit type
@@ -59,7 +59,8 @@ const loading = ref(false);
 const currentPageId = computed((): string | number => values.value?.id || props.primaryKey);
 const currentTitle = computed((): string => values.value?.title || '');
 
-// 6. Utility function with explicit types for arguments and return value
+// 6. Utility function with explicit types for arguments and return value.
+// Converts text to URL-safe format.
 function slugify(text: string): string {
   return text
       .toString()
@@ -90,6 +91,7 @@ async function buildPath(pageId: string | number): Promise<string[]> {
     const slug = slugify(page.title || '');
 
     if (page.parent) {
+      // Recursively builds the URL path by following parent relationships
       const parentPath: string[] = await buildPath(page.parent);
       return [...parentPath, slug];
     }
