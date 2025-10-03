@@ -54,10 +54,8 @@ Copy the extension to your Directus installation:
 
 **For Local Docker installations:**
 
-Assuming you already have docker-compose installation. 
-A reference of docker-compose can find here:
-
-`https://github.com/letrthang/directus-app`
+Assuming you already have docker-compose installation for Directus. 
+If not, here is a reference of docker-compose: `https://github.com/letrthang/directus-app`
 
 
 <img src="./docs/deploy.png" alt="home" style="border: 1px solid #ccc;">
