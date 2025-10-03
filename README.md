@@ -1,0 +1,183 @@
+# Directus CMS Permalink Generator Extension
+
+**Auto-generate hierarchical permalinks for pages in Directus based on parent-child relationships.**
+
+
+<img src="./docs/home.png" alt="home" style="border: 1px solid #ccc;">
+
+## Prerequisites
+
+- Directus 11.x
+- Node.js 18+
+- npm or yarn
+
+## Installation
+
+### Step 1: Configure Pages Collection
+
+Add a parent-child relationship to your Pages collection:
+
+1. Open Directus Admin Panel
+2. Navigate to **Settings** → **Data Model** → **Pages**
+3. Click **Create Field**
+4. Field name: `parent`
+5. Field type: **Many to One Relationship**
+6. Related collection: **Pages** (self-referential)
+7. Save the field
+
+This enables hierarchical page structures where pages can have parent pages.
+
+<img src="./docs/parent_column_2.png" alt="home" style="border: 1px solid #ccc;">
+<img src="./docs/parent_column.png" alt="home" style="border: 1px solid #ccc;">
+
+### Step 2: Build the Extension
+
+Clone and build the extension locally:
+
+```bash
+# Clone the repository
+git clone https://github.com/letrthang/directus-cms-permalink-generator
+cd directus-cms-permalink-generator
+
+# Install dependencies
+npm install
+
+# Build the extension
+npm run build
+```
+
+The built extension will be in the `dist/` folder.
+
+### Step 3: Deploy to Directus
+
+Copy the extension to your Directus installation:
+
+**For Local Docker installations:**
+
+Assuming you already have docker-compose installation. 
+A reference of docker-compose can find here:
+
+`https://github.com/letrthang/directus-app`
+
+
+<img src="./docs/deploy.png" alt="home" style="border: 1px solid #ccc;">
+
+
+```bash
+# Copy to your mounted extensions directory
+cp -r dist ./extensions/directus-extension-permalink-generator/
+cp package.json ./extensions/directus-extension-permalink-generator/
+
+# Restart Docker Directus
+docker-compose restart
+```
+
+### Step 4: Configure the Permalink Field
+
+1. Go to **Settings** → **Data Model** → **Pages**
+2. Click on the **permalink** field
+3. Under **Interface**, select **Permalink Generator**
+4. Save changes
+
+<img src="./docs/interface_config.png" alt="home" style="border: 1px solid #ccc;">
+
+## Usage
+
+When creating or editing a page:
+
+1. Enter the page **Title**
+2. Optionally select a **Parent** page
+3. Click the **Generate URL** button next to the permalink field
+4. The permalink will be automatically generated based on the hierarchy
+
+### Examples
+
+**Single-level page:**
+- Title: "About Us"
+- Parent: None
+- Generated: `/about-us`
+
+**Two-level page:**
+- Title: "Our Team"
+- Parent: "About Us"
+- Generated: `/about-us/our-team`
+
+**Three-level page:**
+- Title: "Management"
+- Parent: "Our Team" (which has parent "About Us")
+- Generated: `/about-us/our-team/management`
+
+
+<img src="./docs/usage.png" alt="home" style="border: 1px solid #ccc;">
+
+## Features
+
+- Automatic slug generation from page titles
+- Hierarchical URL structure based on parent relationships
+- URL-safe character conversion (spaces to hyphens, remove special chars)
+- Success/error notifications
+- Works with both new and existing pages
+- Real-time generation with loading state
+
+## Development
+
+Run in development mode with hot reload:
+
+```bash
+npm run dev
+```
+
+### Debugging
+
+Enable debug logging in browser console (F12):
+
+1. Open browser DevTools
+2. Go to Console tab
+3. Click "Generate URL" button
+4. View detailed logs showing the generation process
+
+## Troubleshooting
+
+**Extension not appearing:**
+- Verify the extension folder is named `directus-extension-permalink-generator`
+- Check Directus logs: `docker-compose logs -f directus`
+- Ensure `package.json` has `"host": "^11.0.0"`
+- Extension must be in `extensions/` directory (not `extensions/interfaces/`)
+
+**Generate button not working:**
+- Check browser console (F12) for errors
+- Ensure the `parent` field exists in the Pages collection
+- Verify API permissions allow reading page data
+- Make sure you've entered a page title first
+
+**Empty title error:**
+- The extension requires a page title to generate the permalink
+- Enter a title in the Title field before clicking Generate URL
+
+## Technical Details
+
+### Extension Structure
+
+```
+directus-extension-permalink-generator/
+├── dist/
+│   └── index.js          # Built extension
+├── src/
+│   ├── index.ts          # Extension definition
+│   └── interface.vue     # Vue component
+├── package.json
+└── README.md
+```
+
+### How It Works
+
+1. User clicks "Generate URL" button
+2. Extension fetches current page data (title, parent)
+3. Recursively builds path by following parent relationships
+4. Converts each title to URL-safe slug
+5. Combines path segments with forward slashes
+6. Updates permalink field with generated URL
+
+## License
+
+MIT
