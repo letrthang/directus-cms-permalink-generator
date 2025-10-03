@@ -10,6 +10,11 @@
 - Directus 11.x
 - Node.js 18+
 - npm or yarn
+- Install CMS template into Directus if it hasn't installed. 
+Below is example of installation CMS template on Directus Docker console (`npx directus-template-cli@latest apply`)
+
+
+<img src="./docs/install_cms_template.png" alt="home" style="border: 1px solid #ccc;">
 
 ## Installation
 
