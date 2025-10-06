@@ -80,7 +80,8 @@ docker-compose restart
 1. Go to **Settings** → **Data Model** → **Pages**
 2. Click on the **permalink** field
 3. Under **Interface**, select **Permalink Generator**
-4. Save changes
+4. Input Title field and Parent page which are existing in the data model/schema
+5. Save changes
 
 <img src="./docs/interface_config.png" alt="home" style="border: 1px solid #ccc;">
 
@@ -88,8 +89,8 @@ docker-compose restart
 
 When creating or editing a page:
 
-1. Enter the page **Title**
-2. Optionally select a **Parent** page
+1. Enter the page **Title** which you configured at the Permalink interface
+2. Optionally select a **Parent** page which you configured at the Permalink interface
 3. Click the **Generate URL** button next to the permalink field
 4. The permalink will be automatically generated based on the hierarchy
 
@@ -175,7 +176,7 @@ directus-extension-permalink-generator/
 ### How It Works
 
 1. User clicks "Generate URL" button
-2. Extension fetches current page data (title, parent)
+2. Extension fetches current page data (title, parent) and validation existing of configured fields.
 3. Recursively builds path by following parent relationships
 4. Converts each title to URL-safe slug
 5. Combines path segments with forward slashes

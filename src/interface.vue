@@ -19,7 +19,7 @@
 </template>
 
 <script setup lang="ts">
-import {ref, computed, inject, Ref} from 'vue';
+import {ref, computed, inject, Ref, onMounted} from 'vue';
 import {useStores} from '@directus/extensions-sdk';
 
 // 1. Define Props with TypeScript Interface/Type
@@ -30,6 +30,8 @@ interface Props {
   collection: string;
   field: string;
   primaryKey: string | number;
+  titleField?: string;
+  parentField?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -37,6 +39,8 @@ const props = withDefaults(defineProps<Props>(), {
   disabled: false,
   placeholder: 'Click Generate URL to create permalink',
   primaryKey: '+',
+  titleField: 'title',
+  parentField: 'parent',
 });
 
 // 2. Define Emitted Events with TypeScript
@@ -45,21 +49,57 @@ const emit = defineEmits<{
 }>();
 
 // 3. Inject Dependencies with explicit types
-// NOTE: Actual types for 'api' and 'values' would depend on the Directus SDK types.
-// We are using 'any' as a placeholder for unknown types.
 const api = inject('api') as any;
-const values = inject('values') as Ref<any>; // 'values' is typically a reactive object
+const values = inject('values') as Ref<any>;
 const {useNotificationsStore} = useStores();
 const notificationsStore = useNotificationsStore();
 
 // 4. Reactive State with explicit type
 const loading = ref(false);
+const collectionFields = ref<string[]>([]);
 
 // 5. Computed Properties with inferred types (or explicit return type)
 const currentPageId = computed((): string | number => values.value?.id || props.primaryKey);
-const currentTitle = computed((): string => values.value?.title || '');
+const currentTitle = computed((): string => values.value?.[props.titleField] || '');
+const currentParent = computed((): string | number | undefined => values.value?.[props.parentField]);
 
-// 6. Utility function with explicit types for arguments and return value.
+// 6. Fetch collection fields on mount
+onMounted(async () => {
+  try {
+    const response = await api.get(`/fields/${props.collection}`);
+    collectionFields.value = response.data.data.map((field: any) => field.field);
+    console.log('Available fields in collection:', collectionFields.value);
+  } catch (error) {
+    console.error('Error fetching collection fields:', error);
+  }
+});
+
+// 7. Validate field existence
+function validateFields(): boolean {
+  const missingFields: string[] = [];
+
+  if (!collectionFields.value.includes(props.titleField)) {
+    missingFields.push(props.titleField);
+  }
+
+  if (!collectionFields.value.includes(props.parentField)) {
+    missingFields.push(props.parentField);
+  }
+
+  if (missingFields.length > 0) {
+    notificationsStore.add({
+      title: 'Configuration Error',
+      text: `The following configured fields do not exist in the "${props.collection}" collection: ${missingFields.join(', ')}. Please check the interface configuration.`,
+      type: 'error',
+      dialog: true,
+    });
+    return false;
+  }
+
+  return true;
+}
+
+// 8. Utility function with explicit types for arguments and return value.
 // Converts text to URL-safe format.
 function slugify(text: string): string {
   return text
@@ -73,7 +113,7 @@ function slugify(text: string): string {
       .replace(/-+$/, '');
 }
 
-// 7. Async function with explicit types for arguments and return value
+// 9. Async function with explicit types for arguments and return value
 async function buildPath(pageId: string | number): Promise<string[]> {
   if (!pageId || pageId === '+') {
     return [];
@@ -81,18 +121,18 @@ async function buildPath(pageId: string | number): Promise<string[]> {
 
   try {
     // Await API call response, typing it for safety (using any for simplicity)
-    const response: any = await api.get(`/items/pages/${pageId}`, {
+    const response: any = await api.get(`/items/${props.collection}/${pageId}`, {
       params: {
-        fields: ['id', 'title', 'parent'],
+        fields: ['id', props.titleField, props.parentField],
       },
     });
 
     const page = response.data.data;
-    const slug = slugify(page.title || '');
+    const slug = slugify(page[props.titleField] || '');
 
-    if (page.parent) {
+    if (page[props.parentField]) {
       // Recursively builds the URL path by following parent relationships
-      const parentPath: string[] = await buildPath(page.parent);
+      const parentPath: string[] = await buildPath(page[props.parentField]);
       return [...parentPath, slug];
     }
 
@@ -103,40 +143,48 @@ async function buildPath(pageId: string | number): Promise<string[]> {
   }
 }
 
-// 8. Main function is kept as an async function
+// 10. Main function is kept as an async function
 async function generatePermalink() {
   console.group('🔗 Generate Permalink');
   console.log('Props:', props);
   console.log('Primary Key:', props.primaryKey);
+  console.log('Title Field:', props.titleField);
+  console.log('Parent Field:', props.parentField);
   console.log('Current Title:', currentTitle.value);
-  console.log('Parent ID:', values.value?.parent);
+  console.log('Parent ID:', currentParent.value);
+
+  // Validate fields before proceeding
+  if (!validateFields()) {
+    console.groupEnd();
+    return;
+  }
 
   loading.value = true;
 
   try {
     if (props.primaryKey === '+') {
-      console.log('📝 Creating NEW page');
+      console.log('🆕 Creating NEW page');
 
       if (!currentTitle.value) {
-        console.warn('❌ Title is empty!');
+        console.warn('⚠️ Title is empty!');
         notificationsStore.add({
           title: 'Title Required',
-          text: 'Please enter a page title before generating the permalink. The permalink is created from the page title.',
+          text: `Please enter a value in the "${props.titleField}" field before generating the permalink.`,
           type: 'error',
-          dialog: true, // Show as dialog instead of toast
+          dialog: true,
         });
-        loading.value = false; // Stop loading immediately
+        loading.value = false;
         console.groupEnd();
         return;
       }
 
       const slug: string = slugify(currentTitle.value);
-      const parentId: string | number | undefined = values.value?.parent;
+      const parentId: string | number | undefined = currentParent.value;
 
       let path: string[] = [];
 
       if (parentId) {
-        console.log('📁 Building path with parent:', parentId);
+        console.log('📂 Building path with parent:', parentId);
         path = await buildPath(parentId);
       }
 
@@ -186,7 +234,6 @@ async function generatePermalink() {
 </script>
 
 <style scoped>
-/* Styles remain the same */
 .permalink-generator {
   display: flex;
   gap: 8px;
