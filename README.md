@@ -30,6 +30,8 @@ Add a parent-child relationship to your Pages collection:
 6. Related collection: **Pages** (self-referential)
 7. Save the field
 
+#### => Repeating above steps to create other parent field with name is 'other_parent'
+
 This enables hierarchical page structures where pages can have parent pages.
 
 <img src="./docs/parent_column_2.png" alt="home" style="border: 1px solid #ccc;">
@@ -80,7 +82,7 @@ docker-compose restart
 1. Go to **Settings** → **Data Model** → **Pages**
 2. Click on the **permalink** field
 3. Under **Interface**, select **Permalink Generator**
-4. Input Title field and Parent page which are existing in the data model/schema
+4. Input **Title** field and **Parent** page which are existing in the data model/schema
 5. Save changes
 
 <img src="./docs/interface_config.png" alt="home" style="border: 1px solid #ccc;">
