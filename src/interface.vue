@@ -139,10 +139,27 @@ function slugify(text: string): string {
 }
 
 // 10. Async function with explicit types for arguments and return value
-async function buildPath(pageId: string | number): Promise<string[]> {
+// Note: Need to avoid If The page is set as its own parent! This creates an infinite recursion loop.
+// So, need Circular reference check - if we encounter a page we've already visited, stop and show error
+async function buildPath(pageId: string | number, visitedPages: Set<string | number> = new Set()): Promise<string[]> {
   if (!pageId || pageId === '+') {
     return [];
   }
+
+  // Check for circular reference - prevent infinite recursion
+  if (visitedPages.has(pageId)) {
+    console.error('⚠️ Circular reference detected! Page', pageId, 'is already in the path.');
+    notificationsStore.add({
+      title: 'Circular Reference Error',
+      text: 'Circular reference. A page cannot be its own ancestor. Please check the parent relationships.',
+      type: 'error',
+      dialog: true,
+    });
+    return [];
+  }
+
+  // Add current page to visited set
+  visitedPages.add(pageId);
 
   // If no parent field is configured, just return the current page slug
   if (!isParentFieldConfigured()) {
@@ -177,10 +194,10 @@ async function buildPath(pageId: string | number): Promise<string[]> {
     const page = response.data.data;
     const slug = slugify(page[props.titleField] || '');
 
-    // Check if page has a parent
-    if (parentFieldName.value && page[parentFieldName.value]) {
+    // Check if page has a parent and it's not itself
+    if (parentFieldName.value && page[parentFieldName.value] && page[parentFieldName.value] !== pageId) {
       // Recursively builds the URL path by following parent relationships
-      const parentPath: string[] = await buildPath(page[parentFieldName.value]);
+      const parentPath: string[] = await buildPath(page[parentFieldName.value], visitedPages);
       return [...parentPath, slug];
     }
 
@@ -262,6 +279,24 @@ async function generatePermalink() {
     } else {
       console.log('✏️ Editing EXISTING page');
       console.log('Building path for page:', currentPageId.value);
+
+      // Check if the page is set as its own parent causing infinite recursion
+      const parentValue = isParentFieldConfigured()
+          ? (values.value?.[parentFieldName.value] || currentParent.value)
+          : undefined;
+
+      if (isParentFieldConfigured() && parentValue && parentValue === currentPageId.value) {
+        console.error('❌ Self-reference detected! Page cannot be its own parent.');
+        notificationsStore.add({
+          title: 'Invalid Parent',
+          text: 'A page cannot be set as its own parent. Please select a different parent page or leave it empty.',
+          type: 'error',
+          dialog: true,
+        });
+        loading.value = false;
+        console.groupEnd();
+        return;
+      }
 
       const path: string[] = await buildPath(currentPageId.value);
       console.log('Built path:', path);
