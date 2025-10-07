@@ -3,14 +3,15 @@
   "version": "1.0.0",
   "description": "Auto-generate hierarchical permalinks for pages in Directus based on parent-child relationships",
   "keywords": [
-    "directus",
     "directus-extension",
     "directus-custom-interface",
     "directus-extension-interface",
     "permalink",
     "slug",
     "url-generator",
-    "seo"
+    "seo",
+    "cms",
+    "content-management"
   ],
   "type": "module",
   "author": {
@@ -41,8 +42,5 @@
     "@directus/types": "^11.2.1",
     "typescript": "^5.9.3",
     "vue": "^3.5.22"
-  },
-  "peerDependencies": {
-    "@directus/extensions-sdk": "^11.0.0"
   }
 }
