@@ -92,7 +92,7 @@ docker-compose restart
 When creating or editing a page:
 
 1. Enter the page **Title** which you configured at the Permalink interface
-2. Optionally select a **Parent** page which you configured at the Permalink interface
+2. Optionally select a **Parent** page which you configured at the Permalink interface.  **Note: a page cannot set parent is itself**
 3. Click the **Generate URL** button next to the permalink field
 4. The permalink will be automatically generated based on the hierarchy
 
