@@ -1,5 +1,9 @@
 # Directus CMS Permalink Generator Extension
 
+[![npm version](https://badge.fury.io/js/directus-extension-permalink-generator.svg)](https://www.npmjs.com/package/directus-extension-permalink-generator)
+[![npm downloads](https://img.shields.io/npm/dm/directus-extension-permalink-generator.svg)](https://www.npmjs.com/package/directus-extension-permalink-generator)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 **Auto-generate hierarchical permalinks for pages in Directus based on parent-child relationships.**
 
 
