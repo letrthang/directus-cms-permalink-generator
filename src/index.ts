@@ -25,7 +25,7 @@ export default defineInterface({
             },
         },
         {
-            field: 'parentField',
+            field: 'parentRelationField',  // Changed from 'parentField' to avoid conflict
             name: 'Parent Page Relation Field',
             type: 'string',
             meta: {
@@ -34,10 +34,10 @@ export default defineInterface({
                 options: {
                     placeholder: 'parent',
                 },
-                note: 'The M2O field name for the parent page (e.g., "parent_page").',
+                note: 'The M2O field name for the parent page (e.g., "parent_page"). Leave empty to generate flat URLs without hierarchy.',
             },
             schema: {
-                default_value: 'parent',
+                default_value: '',  // Empty by default so users can choose
             },
         },
     ],

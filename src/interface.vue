@@ -31,7 +31,7 @@ interface Props {
   field: string;
   primaryKey: string | number;
   titleField?: string;
-  parentField?: string;
+  parentRelationField?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -40,7 +40,7 @@ const props = withDefaults(defineProps<Props>(), {
   placeholder: 'Click Generate URL to create permalink',
   primaryKey: '+',
   titleField: 'title',
-  parentField: 'parent',
+  parentRelationField: '',  // Changed from parentField to avoid naming conflict
 });
 
 // 2. Define Emitted Events with TypeScript
@@ -58,12 +58,35 @@ const notificationsStore = useNotificationsStore();
 const loading = ref(false);
 const collectionFields = ref<string[]>([]);
 
-// 5. Computed Properties with inferred types (or explicit return type)
+// 5. Helper function to check if parent field is configured
+function isParentFieldConfigured(): boolean {
+  return !!(props.parentRelationField && props.parentRelationField.trim() !== '');
+}
+
+// Get the actual parent field name
+const parentFieldName = computed(() => props.parentRelationField || '');
+
+// 6. Computed Properties
 const currentPageId = computed((): string | number => values.value?.id || props.primaryKey);
 const currentTitle = computed((): string => values.value?.[props.titleField] || '');
-const currentParent = computed((): string | number | undefined => values.value?.[props.parentField]);
+const currentParent = computed((): string | number | undefined => {
+  // Only get parent if parentField is configured
+  if (isParentFieldConfigured()) {
+    // Access the parent field value safely
+    const valuesObj = values.value || {};
+    const parentValue = valuesObj[parentFieldName.value];
 
-// 6. Fetch collection fields on mount
+    // Debug logging
+    console.log('🔍 Checking parent field:', parentFieldName.value);
+    console.log('📦 Values object:', valuesObj);
+    console.log('👉 Parent value:', parentValue);
+
+    return parentValue;
+  }
+  return undefined;
+});
+
+// 7. Fetch collection fields on mount
 onMounted(async () => {
   try {
     const response = await api.get(`/fields/${props.collection}`);
@@ -74,16 +97,18 @@ onMounted(async () => {
   }
 });
 
-// 7. Validate field existence
+// 8. Validate field existence
 function validateFields(): boolean {
   const missingFields: string[] = [];
 
+  // Always validate Title field (mandatory)
   if (!collectionFields.value.includes(props.titleField)) {
     missingFields.push(props.titleField);
   }
 
-  if (!collectionFields.value.includes(props.parentField)) {
-    missingFields.push(props.parentField);
+  // Only validate parent field if it's configured (not empty)
+  if (isParentFieldConfigured() && !collectionFields.value.includes(parentFieldName.value)) {
+    missingFields.push(parentFieldName.value);
   }
 
   if (missingFields.length > 0) {
@@ -99,7 +124,7 @@ function validateFields(): boolean {
   return true;
 }
 
-// 8. Utility function with explicit types for arguments and return value.
+// 9. Utility function with explicit types for arguments and return value.
 // Converts text to URL-safe format.
 function slugify(text: string): string {
   return text
@@ -113,26 +138,49 @@ function slugify(text: string): string {
       .replace(/-+$/, '');
 }
 
-// 9. Async function with explicit types for arguments and return value
+// 10. Async function with explicit types for arguments and return value
 async function buildPath(pageId: string | number): Promise<string[]> {
   if (!pageId || pageId === '+') {
     return [];
   }
 
+  // If no parent field is configured, just return the current page slug
+  if (!isParentFieldConfigured()) {
+    try {
+      const response: any = await api.get(`/items/${props.collection}/${pageId}`, {
+        params: {
+          fields: ['id', props.titleField],
+        },
+      });
+      const page = response.data.data;
+      const slug = slugify(page[props.titleField] || '');
+      return [slug];
+    } catch (error) {
+      console.error('Error fetching page:', error);
+      return [];
+    }
+  }
+
   try {
-    // Await API call response, typing it for safety (using any for simplicity)
+    // Build fields array dynamically
+    const fieldsToFetch = ['id', props.titleField];
+    if (parentFieldName.value) {
+      fieldsToFetch.push(parentFieldName.value);
+    }
+
     const response: any = await api.get(`/items/${props.collection}/${pageId}`, {
       params: {
-        fields: ['id', props.titleField, props.parentField],
+        fields: fieldsToFetch,
       },
     });
 
     const page = response.data.data;
     const slug = slugify(page[props.titleField] || '');
 
-    if (page[props.parentField]) {
+    // Check if page has a parent
+    if (parentFieldName.value && page[parentFieldName.value]) {
       // Recursively builds the URL path by following parent relationships
-      const parentPath: string[] = await buildPath(page[props.parentField]);
+      const parentPath: string[] = await buildPath(page[parentFieldName.value]);
       return [...parentPath, slug];
     }
 
@@ -143,15 +191,18 @@ async function buildPath(pageId: string | number): Promise<string[]> {
   }
 }
 
-// 10. Main function is kept as an async function
+// 11. Main function is kept as an async function
 async function generatePermalink() {
   console.group('🔗 Generate Permalink');
   console.log('Props:', props);
   console.log('Primary Key:', props.primaryKey);
   console.log('Title Field:', props.titleField);
-  console.log('Parent Field:', props.parentField);
+  console.log('Parent Field:', parentFieldName.value);
+  console.log('Has Parent Field:', isParentFieldConfigured());
   console.log('Current Title:', currentTitle.value);
   console.log('Parent ID:', currentParent.value);
+  console.log('📦 Full Values Object:', values.value);
+  console.log('🔍 Direct Parent Access:', values.value?.[parentFieldName.value]);
 
   // Validate fields before proceeding
   if (!validateFields()) {
@@ -179,13 +230,21 @@ async function generatePermalink() {
       }
 
       const slug: string = slugify(currentTitle.value);
-      const parentId: string | number | undefined = currentParent.value;
-
       let path: string[] = [];
 
-      if (parentId) {
-        console.log('📂 Building path with parent:', parentId);
-        path = await buildPath(parentId);
+      // Get parent value directly from values object
+      const parentValue = isParentFieldConfigured()
+          ? (values.value?.[parentFieldName.value] || currentParent.value)
+          : undefined;
+
+      console.log('🔍 Parent value for path building:', parentValue);
+
+      // Only build parent path if parent field is configured and has a value
+      if (isParentFieldConfigured() && parentValue) {
+        console.log('📂 Building path with parent:', parentValue);
+        path = await buildPath(parentValue);
+      } else {
+        console.log('📄 No parent field configured or no parent selected - creating top-level permalink');
       }
 
       path.push(slug);
