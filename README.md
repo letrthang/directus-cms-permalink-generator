@@ -34,7 +34,7 @@ Add a parent-child relationship to your Pages collection:
 6. Related collection: **Pages** (self-referential)
 7. Save the field
 
-#### => Repeating above steps to create other parent field with name is 'other_parent'
+#### => Repeating above steps to create other parent field with name is 'other_parent'. You can create many parent fields as you want.
 
 This enables hierarchical page structures where pages can have parent pages.
 
