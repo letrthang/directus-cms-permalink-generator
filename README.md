@@ -7,7 +7,7 @@
 **Auto-generate hierarchical permalinks for pages in Directus based on parent-child relationships.**
 
 ## Installation
-This extension supports Directus 11.x. In the root of your Directus server project run:
+This extension supports [Directus 11.x](https://directus.io/). In the root of your Directus server project run:
 
 `$ npm i directus-extension-permalink-generator`
 
