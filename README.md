@@ -7,11 +7,26 @@
 **Auto-generate hierarchical permalinks for pages in Directus based on parent-child relationships.**
 
 ## Installation
-This extension supports Directus 11.x. Assuming you already have directory **extensions** in your Directus server. CD to the directory **extensions** and run:
+This extension supports Directus 11.x. In the root of your Directus server project run:
 
 `$ npm i directus-extension-permalink-generator`
 
 ... and then restart Directus!
+
+
+#### Note: If you are running Directus on docker, you need to install the extension in the directory **extensions** of the Directus server. Reference here for docker-compose file:
+[https://github.com/letrthang/directus-app/blob/master/docker-compose.yml](https://github.com/letrthang/directus-app/blob/master/docker-compose.yml). 
+
+Or simply run:
+
+`$ npm i directus-extension-permalink-generator`
+
+and then copy directory from:
+
+`node_modules/directus-extension-permalink-generator` 
+
+to `extensions/directus-extension-permalink-generator` and restart Directus docker.
+
 
 <img src="./docs/home.png" alt="home" style="border: 1px solid #ccc;">
 
