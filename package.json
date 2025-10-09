@@ -1,6 +1,6 @@
 {
   "name": "directus-extension-permalink-generator",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Auto-generate hierarchical permalinks for pages in Directus based on parent-child relationships",
   "keywords": [
     "directus-extension",
