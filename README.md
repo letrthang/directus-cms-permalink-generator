@@ -6,6 +6,12 @@
 
 **Auto-generate hierarchical permalinks for pages in Directus based on parent-child relationships.**
 
+## Installation
+Assuming you already have directory **extensions** in your Directus server. CD to this directory **extensions** and run:
+
+`$ npm i directus-extension-permalink-generator`
+
+... and then restart Directus!
 
 <img src="./docs/home.png" alt="home" style="border: 1px solid #ccc;">
 
@@ -20,7 +26,7 @@ Below is example of installation CMS template on Directus Docker console (`npx d
 
 <img src="./docs/install_cms_template.png" alt="home" style="border: 1px solid #ccc;">
 
-## Installation
+## Development
 
 ### Step 1: Configure Pages Collection
 
