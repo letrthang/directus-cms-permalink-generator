@@ -4,10 +4,10 @@ import InterfaceComponent from './interface.vue';
 export default defineInterface({
     id: 'permalink-generator',
     name: 'Permalink Generator',
-    icon: 'link',
     description: 'Auto-generate permalink based on page hierarchy',
+    icon: 'link',
     component: InterfaceComponent,
-    options: [
+    options: ({ field }) => [
         {
             field: 'titleField',
             name: 'Title Field Name',
@@ -18,14 +18,13 @@ export default defineInterface({
                 options: {
                     placeholder: 'title',
                 },
-                note: 'The field used to generate the current segment (e.g., "title").',
             },
             schema: {
                 default_value: 'title',
             },
         },
         {
-            field: 'parentRelationField',  // Changed from 'parentField' to avoid conflict
+            field: 'parentRelationField',
             name: 'Parent Page Relation Field',
             type: 'string',
             meta: {
@@ -34,10 +33,36 @@ export default defineInterface({
                 options: {
                     placeholder: 'parent',
                 },
-                note: 'The M2O field name for the parent page (e.g., "parent_page"). Leave empty to generate flat URLs without hierarchy.',
             },
             schema: {
-                default_value: '',  // Empty by default so users can choose
+                default_value: '',
+            },
+        },
+        {
+            field: 'slashAtStart',
+            name: 'Slash at Start URL',
+            type: 'boolean',
+            meta: {
+                interface: 'boolean',
+                width: 'half',
+            },
+            schema: {
+                default_value: true,
+            },
+        },
+        {
+            field: 'placeholder',
+            name: 'Placeholder',
+            type: 'string',
+            meta: {
+                interface: 'input',
+                width: 'full',
+                options: {
+                    placeholder: 'Click Generate URL to create permalink',
+                },
+            },
+            schema: {
+                default_value: 'Click Generate URL to create permalink',
             },
         },
     ],
