@@ -141,7 +141,8 @@ function slugify(text: string): string {
 // 10. Async function with explicit types for arguments and return value
 // Note: Need to avoid If The page is set as its own parent! This creates an infinite recursion loop.
 // So, need Circular reference check - if we encounter a page we've already visited, stop and show error
-async function buildPath(pageId: string | number, visitedPages: Set<string | number> = new Set()): Promise<string[]> {
+// NEW: Added isCurrentPage parameter to distinguish between current page (use UI values) and parent pages (fetch from DB)
+async function buildPath(pageId: string | number, visitedPages: Set<string | number> = new Set(), isCurrentPage: boolean = false): Promise<string[]> {
   if (!pageId || pageId === '+') {
     return [];
   }
@@ -161,6 +162,27 @@ async function buildPath(pageId: string | number, visitedPages: Set<string | num
   // Add current page to visited set
   visitedPages.add(pageId);
 
+  // ✨ KEY FIX: If this is the current page being edited, use UI values instead of DB values
+  if (isCurrentPage) {
+    const slug = slugify(currentTitle.value || '');
+
+    // Get parent from current UI state
+    const parentValue = isParentFieldConfigured()
+        ? (values.value?.[parentFieldName.value] || currentParent.value)
+        : undefined;
+
+    console.log('🎯 Using CURRENT UI values - Title:', currentTitle.value, 'Parent:', parentValue);
+
+    // If has parent and parent field is configured, build parent path recursively
+    if (isParentFieldConfigured() && parentValue && parentValue !== pageId) {
+      const parentPath: string[] = await buildPath(parentValue, visitedPages, false);
+      return [...parentPath, slug];
+    }
+
+    return [slug];
+  }
+
+  // For parent pages, fetch from database
   // If no parent field is configured, just return the current page slug
   if (!isParentFieldConfigured()) {
     try {
@@ -171,6 +193,7 @@ async function buildPath(pageId: string | number, visitedPages: Set<string | num
       });
       const page = response.data.data;
       const slug = slugify(page[props.titleField] || '');
+      console.log('📂 Fetched from DB (no parent field) - Page:', pageId, 'Slug:', slug);
       return [slug];
     } catch (error) {
       console.error('Error fetching page:', error);
@@ -193,11 +216,12 @@ async function buildPath(pageId: string | number, visitedPages: Set<string | num
 
     const page = response.data.data;
     const slug = slugify(page[props.titleField] || '');
+    console.log('📂 Fetched from DB - Page:', pageId, 'Slug:', slug, 'Parent:', page[parentFieldName.value]);
 
     // Check if page has a parent and it's not itself
     if (parentFieldName.value && page[parentFieldName.value] && page[parentFieldName.value] !== pageId) {
       // Recursively builds the URL path by following parent relationships
-      const parentPath: string[] = await buildPath(page[parentFieldName.value], visitedPages);
+      const parentPath: string[] = await buildPath(page[parentFieldName.value], visitedPages, false);
       return [...parentPath, slug];
     }
 
@@ -259,7 +283,8 @@ async function generatePermalink() {
       // Only build parent path if parent field is configured and has a value
       if (isParentFieldConfigured() && parentValue) {
         console.log('📂 Building path with parent:', parentValue);
-        path = await buildPath(parentValue);
+        // For parents, fetch from DB (isCurrentPage = false)
+        path = await buildPath(parentValue, new Set(), false);
       } else {
         console.log('📄 No parent field configured or no parent selected - creating top-level permalink');
       }
@@ -298,7 +323,8 @@ async function generatePermalink() {
         return;
       }
 
-      const path: string[] = await buildPath(currentPageId.value);
+      // ✨ KEY FIX: Pass isCurrentPage = true to use UI values for current page
+      const path: string[] = await buildPath(currentPageId.value, new Set(), true);
       console.log('Built path:', path);
 
       const permalink: string = '/' + path.join('/');
