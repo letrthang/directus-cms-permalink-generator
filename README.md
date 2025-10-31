@@ -107,7 +107,7 @@ docker-compose restart
 1. Go to **Settings** → **Data Model** → **Pages**
 2. Click on the **permalink** field
 3. Under **Interface**, select **Permalink Generator**
-4. Input **Title** field and **Parent** page which are existing in the data model/schema
+4. Input **Title** field,  **Parent**,  **URL prefix**, **Placeholder** page which are existing in the data model/schema
 5. Save changes
 
 <img src="./docs/interface_config.png" alt="home" style="border: 1px solid #ccc;">
@@ -120,6 +120,8 @@ When creating or editing a page:
 2. Optionally select a **Parent** page which you configured at the Permalink interface.  **Note: a page cannot set parent is itself**
 3. Click the **Generate URL** button next to the permalink field
 4. The permalink will be automatically generated based on the hierarchy
+
+#### Note: depending on filed **URL prefix**, final URL will be appended from value of this field
 
 ### Examples
 
