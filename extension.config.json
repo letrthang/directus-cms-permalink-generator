@@ -1,6 +1,6 @@
 {
   "name": "Permalink Generator",
-  "version": "1.0.8",
+  "version": "1.0.9",
   "type": "interface",
   "icon": "link",
   "description": "Auto-generate hierarchical permalinks for pages based on parent-child relationships",
