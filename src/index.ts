@@ -40,14 +40,17 @@ export default defineInterface({
         },
         {
             field: 'slashAtStart',
-            name: 'Slash at Start URL',
-            type: 'boolean',
+            name: 'URL Prefix',
+            type: 'string',
             meta: {
-                interface: 'boolean',
+                interface: 'input',
                 width: 'half',
+                options: {
+                    placeholder: 'Put Prefix Here',
+                },
             },
             schema: {
-                default_value: true,
+                default_value: '/',
             },
         },
         {

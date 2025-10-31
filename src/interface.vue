@@ -32,7 +32,7 @@ interface Props {
   primaryKey: string | number;
   titleField?: string;
   parentRelationField?: string;
-  slashAtStart?: boolean;
+  slashAtStart?: string;
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -42,7 +42,7 @@ const props = withDefaults(defineProps<Props>(), {
   primaryKey: '+',
   titleField: 'title',
   parentRelationField: '',  // Changed from parentField to avoid naming conflict
-  slashAtStart: true,  // Default to true (current behavior)
+  slashAtStart: '/',  // Default to '/' (current behavior)
 });
 
 // 2. Define Emitted Events with TypeScript
@@ -292,7 +292,12 @@ async function generatePermalink() {
       }
 
       path.push(slug);
-      const permalink: string = props.slashAtStart ? '/' + path.join('/') : path.join('/');
+
+      // Generate permalink with custom prefix
+      const generatedPath = path.join('/');
+      const permalink: string = (props.slashAtStart && props.slashAtStart.trim() !== '')
+          ? props.slashAtStart + generatedPath
+          : generatedPath;
 
       console.log('✅ Generated permalink:', permalink);
 
@@ -329,7 +334,12 @@ async function generatePermalink() {
       const path: string[] = await buildPath(currentPageId.value, new Set(), true);
       console.log('Built path:', path);
 
-      const permalink: string = props.slashAtStart ? '/' + path.join('/') : path.join('/');
+      // Generate permalink with custom prefix
+      const generatedPath = path.join('/');
+      const permalink: string = (props.slashAtStart && props.slashAtStart.trim() !== '')
+          ? props.slashAtStart + generatedPath
+          : generatedPath;
+
       console.log('✅ Generated permalink:', permalink);
 
       emit('input', permalink);
