@@ -121,7 +121,10 @@ When creating or editing a page:
 3. Click the **Generate URL** button next to the permalink field
 4. The permalink will be automatically generated based on the hierarchy
 
-#### Note: depending on filed **URL prefix**, final URL will be appended from value of this field
+#### Note: 
+
+- Depending on value of the filed **URL prefix**, final URL will be appended from this field. 
+- If you don't want to use the url from the **parent** page. Click on the clear (**x**) button of the Parent page's combo-box to remove the current selection before re-generating new URL.
 
 ### Examples
 
